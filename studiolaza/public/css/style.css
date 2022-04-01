@@ -1,0 +1,50 @@
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    padding:10px 20px;
+  }
+
+.loginbox{
+    width:350px;
+    height:550px;
+    background:#FFFDFD;
+    color:#000;
+    top:30%; 
+    left:50%;
+    position:absolute;
+    transform:translate(-50%,-25%);
+    box-sizing:border-box;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.29);	
+    padding:70px 30px;
+}
+
+h1{
+	margin:0;
+	padding: 0 0 20px;
+	text-align:center;
+	font-size:22px;
+}
+
+input[type=text], input[type=password] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    box-sizing: border-box;
+  }
+
+  span.pwd {
+    display: block;
+    float: none;
+  }
+
+.avatar {
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    position:absolute;
+    top:-50px;
+    left:calc(50% - 50px);
+}

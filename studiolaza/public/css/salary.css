@@ -1,0 +1,35 @@
+*{
+    padding:0;
+    margin:0;
+    box-sizing: border-box;
+}
+
+.table_div{
+    width:84%;
+    border-radius: 10%;
+    background-color: wheat;
+    padding-left: 3rem;
+    padding-top: 3rem;
+    padding-right: 3rem;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+thead tr {
+    background-color: #890000;
+    color: #ffffff;
+    text-align: left;
+    height:2rem;
+    text-align: center;
+    border:2px solid white;
+}
+tbody tr {
+    border: 1px solid #dddddd;
+}

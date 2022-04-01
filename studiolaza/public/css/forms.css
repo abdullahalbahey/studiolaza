@@ -1,0 +1,36 @@
+.labelbox {
+    color: white;
+    background-color: #890000;
+    height: 50px;
+    width: 500px;
+    margin: auto;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.labelbox:hover {
+    background-color: #890000;
+    border: 2px solid white;
+    color: white;
+    
+}
+
+input[type="file"] {
+    display: none;
+}
+
+
+.buttonSpace{
+    margin: 0 50px;
+}
+
+.content {
+    width: 60%;
+    display: flex;
+    height: auto;
+    background-color: #fffdfd;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}

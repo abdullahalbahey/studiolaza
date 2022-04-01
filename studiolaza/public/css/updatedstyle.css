@@ -1,0 +1,302 @@
+
+body {
+    background-color: #FFFDFD;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0 10px;
+    
+}
+.container{
+    display: flex;
+    flex-direction: column;
+}
+.sidenavigation{
+    width: 20%;
+    background-color: #890000;
+    
+}
+.indexReview {
+    display: flex;
+    overflow: auto;
+}
+
+.singlereviewbox {
+    text-align: center;
+}
+.content{
+    width: 80%;
+    background-color: #f1f1f1;
+    padding: 30 20;
+    min-height:750px;
+    display: flex;
+    flex-direction: column;
+}
+
+.middle_1{
+    display:flex;
+    
+}
+.middle_2{
+    
+    background-color: #FFFDFD;
+    padding: 30 20;
+    min-height:750px;
+    display: flex;
+    flex-direction: column;
+}
+.list_pading{
+    padding-left: 20px;
+    margin: 20px;
+    width: 30%;
+}
+.singlereviewbox{
+    width: 100%;
+    height: auto;
+    background-color: #f2f2f2;
+    border-radius: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-right: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    margin: 10px;   
+}
+
+.buttonSpace{
+    margin: 0 50px;
+}
+
+h1,h2,h3,h4,p {
+    margin-left: 20px;
+    color: #890000;
+}
+/*Input types*/
+
+input[type=text], input[type=number], input[type=date], input[type=time], input[type=password], input[type=email] {
+   
+    height:50px;
+    width: auto;
+    border-radius: 20px;
+    padding: 0 0px 0 20px;
+    font-size: 16px;
+   
+}
+
+input[type=checkbox] {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #890000;
+    border: solid 5px red;
+    background: #FF9593;
+}
+
+input[type=checkbox]:hover {
+    font-size: 30px;
+    cursor: pointer;
+}
+
+input {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* Buttton Designs */
+
+.button, button {
+    background-color: #f2f2f2;
+    border: 2px solid #890000;
+    color: #890000;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 30px;
+    z-index: 1;
+    height: 40px;
+}
+
+.button:hover{
+    background-color: #890000;
+    border: 2px solid #890000;
+    color: #f2f2f2;
+}
+
+
+/* Frame */
+.frameslider{
+    width: 20%;
+    
+}
+.contentframe{
+   width: 100%;
+}
+
+span.errormessage{
+
+	color: red;
+	font-size: 1rem;
+	text-align: center;
+}
+/* Table Designs */
+
+.red_table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 3%;
+ 
+}
+.thead{
+    background-color: #890000;
+    color: white;
+}
+
+.emptyTable {
+    border: 0px solid #890000;
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    height: 100px;
+    text-align: left;
+}
+
+.emptyTable td {
+    width: 45%;
+}
+
+.red_table td,
+.red_table th {
+    border: 1px solid #787878;
+    padding: 8px;
+    text-align: center;
+}
+
+.red_table th {
+    border: 2.5px solid #890000;
+    
+}
+
+.red_table tr:nth-child(even) {
+    background-color: #fff6f6;
+}
+
+.red_table tr:hover {
+    background-color: rgb(221, 221, 221);
+}
+
+.red_table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #890000;
+    color: #fff6f6;
+}
+
+
+/*Footer decoration*/
+
+.footer {
+    text-align: center;
+   
+}
+
+.footer hr {
+    width: 80%;
+    height: 3px;
+    background-color: #890000;
+    margin-top: 30px;
+    margin-bottom: 60px;
+
+}
+
+.smlogos {
+    margin-bottom: 80px;
+    gap: 30px;
+}
+.fa {
+    padding: 20px;
+    font-size: 40px;
+    width: 20px;
+    text-align: center;
+    text-decoration: none;
+    margin: 5px 2px;
+    border-radius: 50%;
+    color: 890000;
+}
+.fa:hover {
+    opacity: 0.7;
+    width: 30px;
+    text-align: center;
+    text-decoration: none;
+    margin: 5px 2px;
+    border-radius: 50%;
+    /*background:white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);*/
+}
+
+/*Side Navigation*/
+.rightNavDP {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+
+.sidenav {
+    height: 100%;
+    background-color: #890000;
+}
+
+.sidenav a {
+    padding: 6px 6px 6px 32px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: #f1f1f1;
+    display: block;
+}
+.sidenav img{
+    border-radius: 50%;
+    border: 4px solid #f1f1f1;
+}
+
+.sidenavName{
+    font-size: 1.2rem;
+    color: #f1f1f1; 
+    text-align: center;
+    margin-right: 25px;
+}
+.sidenav a:hover {
+    color: #890000;
+    background-color: #f1f1f1;
+}
+
+/*Registration Page*/
+.signup_box{
+    width:50%;
+    background:#dddada;
+    color:#000;
+	box-sizing:border-box;	
+    padding:70px 30px;
+    overflow: hidden;
+}
+
+.signup_box{
+	color:white;
+	background-color:#c70039;
+	height:10%;
+	width:30%;	
+	align-items:center;
+	border-radius:6px;
+
+}
+ 
+
+span.errormessage{
+
+	color: red;
+	font-size: 1rem;
+	text-align: center;
+}

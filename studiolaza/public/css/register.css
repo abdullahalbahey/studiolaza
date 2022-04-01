@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  font-family: "lato", sans-serif;
+  display: flex;
+  justify-content: center;
+  
+  
+}
+@media screen and (max-width: 800px) {
+    .mainCLM .twoCLMIMG img {
+        display: none;
+    }
+
+}
+.signupFrm {
+    display: flex;
+    justify-content: center;
+    border-radius: 2%;
+    width:35%;
+    margin: 6% auto;
+    background-color: white;
+    align-items: center;
+    flex-direction: column;
+    border: 2.5px solid #dadce0;
+    /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.09);
+    
+    height: 80%; */
+  }
+
+  .form {
+    opacity: 0.9;
+    background-color: white;
+    width: 60%;
+    border-radius: 8px;
+    padding: 20px 40px;
+    box-shadow: 0 10px 25px rgba(92, 99, 105, .2);
+  }
+  
+  /* .title {
+    margin-bottom: 50px;
+  } */
+  .labelButton{
+    background-color: #f2f2f2;
+    border: 2px solid #890000;
+    color: #890000;
+    display: inline;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 10px;
+    padding:6px 20px 6px 20px;
+    height: 30px;
+  }
+  .inputContainer {
+    position: relative;
+    height: 40px;
+    margin-bottom: 15px;
+  }
+
+  .input {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    border: 1px solid #bababa;
+    border-radius: 7px;
+    font-size: 15px;
+    padding: 0 20px;
+    outline: none;
+    background: none;
+    z-index: 1;
+  }
+
+  ::placeholder {
+    color: transparent;
+  }
+  .label {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    padding: 0 4px;
+    background-color: white;
+    color: #bababa;
+    font-size: 15px;
+    transition: 0.5s;
+    z-index: 0;
+  }
+  .submitBtn {
+    display: block;
+    margin-left: auto;
+    padding: 10px 20px;
+    border: none;
+    background-color: #980000;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    margin-top: 30px;
+    width: 100%;
+  }
+
+  .submitBtn:hover {
+    background-color: #980000;
+    transform: translateY(-3px);
+  }
+  .errormessage
+{
+    float: right;
+    margin: 10px 10px 0 0 ;
+    color: #980000;
+    
+}  
+  
+  .input:focus + .label {
+    top: -7px;
+    left: 3px;
+    z-index: 10;
+    font-size: 14px;
+    font-weight: 600;
+    color: #890000;
+  }
+
+  .input:focus {
+    border: 2px solid #890000;
+  }
+  .input:not(:placeholder-shown)+ .label {
+    top: -7px;
+    left: 3px;
+    z-index: 10;
+    font-size: 14px;
+    font-weight: 600;
+  }

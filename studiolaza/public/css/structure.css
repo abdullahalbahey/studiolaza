@@ -1,0 +1,39 @@
+
+        .gridheader {
+            grid-area: header;
+        }
+
+        .gridmenue {
+            grid-area: menu;
+        }
+
+        .gridbody {
+            grid-area: gbody;
+            height:600px;
+            
+        }
+
+        .gridfooter {
+            grid-area: footer;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-areas:
+                'header header header header header header'
+                'menu gbody gbody gbody gbody gbody'
+                'footer footer footer footer footer footer';
+            grid-gap: 5px;
+            background-color: #890000;
+            
+        }
+
+        .grid-container>div {
+            background-color: #FFFDFD;
+            text-align: center;
+           
+        }
+
+  
+
+    

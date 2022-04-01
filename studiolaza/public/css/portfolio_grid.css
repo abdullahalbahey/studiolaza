@@ -1,0 +1,16 @@
+.grid {
+
+    background-color: rgb(255, 255, 255);
+    display: inline-grid;
+    grid-template-columns: auto auto auto;
+    grid-template-columns: repeat(autofill);
+    column-gap: 10px;
+    row-gap: 10px;
+    margin-top: 40px;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin-left: 20px;
+    width:650px;
+  
+  }

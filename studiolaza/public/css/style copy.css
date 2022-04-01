@@ -1,0 +1,231 @@
+body {
+    background-color: #FFFDFD;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.indexReview {
+    display: flex;
+}
+
+.singlereviewbox {
+    text-align: center;
+}
+
+/* Frame */
+.frameslider{
+    width: 20%;
+    
+}
+.contentframe{
+   width: 100%;
+}
+
+/* Table Designs */
+
+.red_table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 3%;
+    height: 100px;
+}
+
+.emptyTable {
+    border: 0px solid #890000;
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    height: 100px;
+    text-align: left;
+}
+
+.emptyTable td {
+    width: 45%;
+}
+
+.red_table td,
+.red_table th {
+    border: 2px solid #890000;
+    padding: 8px;
+    text-align: center;
+}
+
+.red_table th {
+    border: 3.5px solid #890000;
+}
+
+.red_table tr:nth-child(even) {
+    background-color: #fff6f6;
+}
+
+.red_table tr:hover {
+    background-color: rgb(221, 221, 221);
+}
+
+.red_table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #fde3e3;
+    color: #890000;
+}
+
+input[type=text], input[type=number], input[type=date] {
+    width: 100%;
+    height:30px;
+}
+
+
+input[type=checkbox] {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #890000;
+    border: solid 5px red;
+    background: #FF9593;
+    background: -moz-radial-gradient(#FF9593, #dfdfdf);
+    background: -webkit-radial-gradient(#FF9593, #dfdfdf);
+    background: -ms-radial-gradient(#FF9593, #dfdfdf);
+    background: -o-radial-gradient(#FF9593, #dfdfdf);
+    background: radial-gradient(#FF9593, #dfdfdf);
+}
+
+input[type=checkbox]:hover {
+    font-size: 30px;
+    cursor: pointer;
+}
+
+input {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* Buttton Designs */
+
+.button {
+    background-color: #f2f2f2;
+    border: 2px solid #890000;
+    color: #890000;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 30px 20px;
+    cursor: pointer;
+    border-radius: 30px;
+    z-index: 1;
+    height: 40px;
+}
+
+.button:hover {
+    background-color: #890000;
+    border: 2px solid #890000;
+    color: #f2f2f2;
+}
+
+.h2report {
+    text-align: center;
+    margin-top: 30px;
+    width: 100%;
+    height: 50px;
+    font-family: Arial;
+}
+
+.button-allign {
+    text-align: center;
+}
+
+.brownText {
+    color: #890000;
+}
+
+.tab_space {
+    -moz-tab-size: 4;
+    tab-size: 4;
+}
+
+
+
+label {
+    margin: 20px;
+    margin-top: 20px;
+    width: 100px;
+    display: inline-block;
+
+}
+
+.longlabel {
+    width: 70%;
+    display: inline-block;
+}
+
+
+/*Footer decoration*/
+
+.footer {
+    display: block;
+}
+
+.footer hr {
+    width: 80%;
+    height: 3px;
+    background-color: #890000;
+    margin-top: 30px;
+    margin-bottom: 60px;
+}
+
+.smlogos {
+    margin-bottom: 80px;
+    gap: 30px;
+}
+.textcenter{
+    text-align: center;
+}
+
+/* Booking Management */
+
+.bookingDetailsFull {
+    margin: 30px;
+    padding: 30px;
+}
+
+.bookingFinance:after {
+    content: "";
+    display: flex;
+    clear: both;
+}
+
+.column_2 {
+    width: 49.8%;
+    float: left;
+    border: 1px solid #890000;
+    border-radius: 10px;
+}
+
+.row:after {
+    padding-left: 10px;
+    text-align: left;
+}
+
+h3, h1, h2, h4,p {
+    margin-left: 20px;
+    color: #890000;
+}
+
+select{
+    width: 25%;
+    height: 30px;
+    border: 1px solid #890000;
+}
+.imgcenter{
+    
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+      
+}
+
