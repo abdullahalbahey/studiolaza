@@ -133,8 +133,9 @@ fun BookDetailsScreen(
                 BookCoverImage(coverPath = state.coverPath, modifier = Modifier.width(120.dp).height(168.dp))
                 Column(modifier = Modifier.padding(start = 16.dp)) {
                     Text(state.title, style = MaterialTheme.typography.titleLarge)
-                    if (state.author != null) {
-                        Text(state.author, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    val author = state.author
+                    if (author != null) {
+                        Text(author, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         "${state.pageCount} pages",
