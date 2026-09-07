@@ -42,8 +42,15 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            if (System.getenv("READFLOW_KEYSTORE_PATH") != null) {
-                signingConfig = signingConfigs.getByName("release")
+            // Falls back to the built-in debug key when no real release keystore is configured
+            // (e.g. in CI, where READFLOW_KEYSTORE_PATH isn't set), so this build type always
+            // produces an APK that installs by sideloading, same as the debug build - just
+            // minified and resource-shrunk. Swap in the real signingConfigs["release"] once an
+            // actual keystore is wired up via those env vars.
+            signingConfig = if (System.getenv("READFLOW_KEYSTORE_PATH") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
             }
         }
     }

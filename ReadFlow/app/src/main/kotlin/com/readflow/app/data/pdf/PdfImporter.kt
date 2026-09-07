@@ -41,7 +41,7 @@ class PdfImporter @Inject constructor(
         input.use { importFromStream(it, displayName) }
     }
 
-    /** Same as [importFromUri] but for a PDF already available as a stream (e.g. downloaded from Drive). */
+    /** Same as [importFromUri] but for a PDF already available as a stream. */
     suspend fun importFromStream(source: InputStream, displayName: String?): ImportedPdfInfo = withContext(Dispatchers.IO) {
         val id = UUID.randomUUID().toString()
         val destFile = File(booksDir, "$id.pdf")

@@ -17,11 +17,6 @@ sealed interface ImportOutcome {
     data class Failed(val message: String) : ImportOutcome
 }
 
-sealed interface DriveBookImportResult {
-    data class Success(val bookId: Long) : DriveBookImportResult
-    data class Duplicate(val existingBookId: Long) : DriveBookImportResult
-}
-
 enum class DuplicateResolution { OPEN_EXISTING, REPLACE, IMPORT_ANYWAY }
 
 @Singleton
@@ -102,17 +97,6 @@ class BookRepository @Inject constructor(
                     ImportOutcome.Failed(e.message ?: "Import failed")
                 }
             }
-        }
-    }
-
-    /** Records a book already downloaded and imported from Drive (bytes already on disk as [info]). */
-    suspend fun importDriveBook(info: ImportedPdfInfo): DriveBookImportResult {
-        val existing = bookDao.findByHash(info.fileHash)
-        return if (existing != null) {
-            pdfImporter.deleteBookFiles(info.filePath, info.coverPath)
-            DriveBookImportResult.Duplicate(existing.id)
-        } else {
-            DriveBookImportResult.Success(insertNewBook(info))
         }
     }
 

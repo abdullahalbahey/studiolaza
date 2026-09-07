@@ -10,9 +10,7 @@ import com.readflow.app.data.local.datastore.SettingsDataStore
 import com.readflow.app.data.local.db.entity.BookEntity
 import com.readflow.app.data.local.db.entity.BookStatus
 import com.readflow.app.data.repository.BookRepository
-import com.readflow.app.data.repository.DriveFolderRepository
 import com.readflow.app.data.repository.DuplicateResolution
-import com.readflow.app.data.repository.FolderImportSummary
 import com.readflow.app.data.repository.ImportOutcome
 import com.readflow.app.domain.ProgressCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -40,7 +37,8 @@ data class BookUiModel(
 
 data class DuplicatePromptState(val existingBookId: Long, val uri: Uri, val displayName: String?)
 
-data class FolderImportProgress(val done: Int, val total: Int, val currentName: String)
+data class BatchImportProgress(val done: Int, val total: Int, val currentName: String)
+data class BatchImportSummary(val filesPicked: Int, val added: Int, val duplicates: Int, val failed: Int)
 
 data class LibraryUiState(
     val books: List<BookUiModel> = emptyList(),
@@ -53,16 +51,14 @@ data class LibraryUiState(
     val errorMessage: String? = null,
     val isImporting: Boolean = false,
     val justImportedBookId: Long? = null,
-    val hasDriveApiKey: Boolean = false,
-    val folderImportProgress: FolderImportProgress? = null,
-    val folderImportSummary: FolderImportSummary? = null
+    val batchImportProgress: BatchImportProgress? = null,
+    val batchImportSummary: BatchImportSummary? = null
 )
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val bookRepository: BookRepository,
-    private val settingsDataStore: SettingsDataStore,
-    private val driveFolderRepository: DriveFolderRepository
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
@@ -73,8 +69,8 @@ class LibraryViewModel @Inject constructor(
         val errorMessage: String? = null,
         val isImporting: Boolean = false,
         val justImportedBookId: Long? = null,
-        val folderImportProgress: FolderImportProgress? = null,
-        val folderImportSummary: FolderImportSummary? = null
+        val batchImportProgress: BatchImportProgress? = null,
+        val batchImportSummary: BatchImportSummary? = null
     )
 
     val uiState: StateFlow<LibraryUiState> = combine(
@@ -98,9 +94,8 @@ class LibraryViewModel @Inject constructor(
             errorMessage = transient.errorMessage,
             isImporting = transient.isImporting,
             justImportedBookId = transient.justImportedBookId,
-            hasDriveApiKey = settings.driveApiKey != null,
-            folderImportProgress = transient.folderImportProgress,
-            folderImportSummary = transient.folderImportSummary
+            batchImportProgress = transient.batchImportProgress,
+            batchImportSummary = transient.batchImportSummary
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryUiState())
 
@@ -174,27 +169,39 @@ class LibraryViewModel @Inject constructor(
         transientState.update { it.copy(duplicatePrompt = null) }
     }
 
-    fun importFromDriveFolder(folderLink: String) {
+    /**
+     * Imports several PDFs picked at once (system file picker, multi-select). Unlike a single
+     * [importBook], duplicates here are just counted rather than prompting per-file - popping a
+     * modal for every duplicate in a batch of, say, twenty files would be unusable.
+     */
+    fun importMultipleBooks(uris: List<Uri>, displayNames: List<String?>) {
+        if (uris.isEmpty()) return
         viewModelScope.launch {
-            transientState.update { it.copy(isImporting = true, errorMessage = null, folderImportProgress = null) }
-            val apiKey = settingsDataStore.settings.first().driveApiKey
-            try {
-                val summary = driveFolderRepository.importFolder(folderLink, apiKey) { done, total, name ->
-                    transientState.update { it.copy(folderImportProgress = FolderImportProgress(done, total, name)) }
+            transientState.update { it.copy(isImporting = true, errorMessage = null, batchImportProgress = null) }
+            var added = 0
+            var duplicates = 0
+            var failed = 0
+            uris.forEachIndexed { index, uri ->
+                val name = displayNames.getOrNull(index)
+                transientState.update { it.copy(batchImportProgress = BatchImportProgress(index, uris.size, name ?: "")) }
+                when (bookRepository.importBook(uri, name)) {
+                    is ImportOutcome.Success -> added++
+                    is ImportOutcome.Duplicate -> duplicates++
+                    is ImportOutcome.Failed -> failed++
                 }
-                transientState.update {
-                    it.copy(isImporting = false, folderImportProgress = null, folderImportSummary = summary)
-                }
-            } catch (e: Throwable) {
-                transientState.update {
-                    it.copy(isImporting = false, folderImportProgress = null, errorMessage = e.message ?: "Folder import failed.")
-                }
+            }
+            transientState.update {
+                it.copy(
+                    isImporting = false,
+                    batchImportProgress = null,
+                    batchImportSummary = BatchImportSummary(uris.size, added, duplicates, failed)
+                )
             }
         }
     }
 
-    fun consumeFolderImportSummary() {
-        transientState.update { it.copy(folderImportSummary = null) }
+    fun consumeBatchImportSummary() {
+        transientState.update { it.copy(batchImportSummary = null) }
     }
 
     fun consumeError() {

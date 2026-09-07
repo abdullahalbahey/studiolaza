@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
@@ -78,12 +77,12 @@ fun LibraryScreen(
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
-    var showFolderImportDialog by remember { mutableStateOf(false) }
 
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            val name = context.queryDisplayName(uri)
-            viewModel.importBook(uri, name)
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.size == 1) {
+            viewModel.importBook(uris[0], context.queryDisplayName(uris[0]))
+        } else if (uris.isNotEmpty()) {
+            viewModel.importMultipleBooks(uris, uris.map { context.queryDisplayName(it) })
         }
     }
 
@@ -115,9 +114,6 @@ fun LibraryScreen(
                 TopAppBar(
                     title = { Text("ReadFlow") },
                     actions = {
-                        IconButton(onClick = { showFolderImportDialog = true }) {
-                            Icon(Icons.Filled.CreateNewFolder, contentDescription = "Import from Google Drive folder")
-                        }
                         IconButton(onClick = { showSearch = !showSearch }) {
                             Icon(Icons.Filled.Search, contentDescription = "Search")
                         }
@@ -211,15 +207,15 @@ fun LibraryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    val folderProgress = state.folderImportProgress
+                    val progress = state.batchImportProgress
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 32.dp)) {
-                        if (folderProgress != null && folderProgress.total > 0) {
+                        if (progress != null && progress.total > 0) {
                             LinearProgressIndicator(
-                                progress = { (folderProgress.done.toFloat() / folderProgress.total).coerceIn(0f, 1f) },
+                                progress = { (progress.done.toFloat() / progress.total).coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                "Importing ${folderProgress.done + 1} of ${folderProgress.total}${if (folderProgress.currentName.isNotBlank()) ": ${folderProgress.currentName}" else ""}",
+                                "Importing ${progress.done + 1} of ${progress.total}${if (progress.currentName.isNotBlank()) ": ${progress.currentName}" else ""}",
                                 modifier = Modifier.padding(top = 12.dp)
                             )
                         } else {
@@ -232,25 +228,17 @@ fun LibraryScreen(
         }
     }
 
-    if (showFolderImportDialog) {
-        FolderImportDialog(
-            hasApiKey = state.hasDriveApiKey,
-            onDismiss = { showFolderImportDialog = false },
-            onImport = { link -> showFolderImportDialog = false; viewModel.importFromDriveFolder(link) }
-        )
-    }
-
-    state.folderImportSummary?.let { summary ->
+    state.batchImportSummary?.let { summary ->
         AlertDialog(
-            onDismissRequest = viewModel::consumeFolderImportSummary,
-            title = { Text("Folder import finished") },
+            onDismissRequest = viewModel::consumeBatchImportSummary,
+            title = { Text("Import finished") },
             text = {
                 Text(
-                    "Found ${summary.filesFound} PDF${if (summary.filesFound == 1) "" else "s"} — added ${summary.added}, " +
+                    "Picked ${summary.filesPicked} PDF${if (summary.filesPicked == 1) "" else "s"} — added ${summary.added}, " +
                         "skipped ${summary.duplicates} already in your library, ${summary.failed} failed."
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::consumeFolderImportSummary) { Text("OK") } }
+            confirmButton = { TextButton(onClick = viewModel::consumeBatchImportSummary) { Text("OK") } }
         )
     }
 
@@ -276,41 +264,6 @@ fun LibraryScreen(
             }
         )
     }
-}
-
-@Composable
-private fun FolderImportDialog(hasApiKey: Boolean, onDismiss: () -> Unit, onImport: (String) -> Unit) {
-    var link by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Import from Drive folder") },
-        text = {
-            Column {
-                Text("Paste a public Google Drive folder link. Every PDF directly inside it will be imported.")
-                if (!hasApiKey) {
-                    Text(
-                        "You need a Google Drive API key set in Settings first — this always requires one.",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                OutlinedTextField(
-                    value = link,
-                    onValueChange = { link = it },
-                    placeholder = { Text("https://drive.google.com/drive/folders/...") },
-                    singleLine = true,
-                    enabled = hasApiKey,
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onImport(link.trim()) }, enabled = hasApiKey && link.isNotBlank()) {
-                Text("Import")
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
 }
 
 @Composable

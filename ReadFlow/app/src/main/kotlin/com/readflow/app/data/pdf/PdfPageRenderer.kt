@@ -61,12 +61,30 @@ class PdfPageRenderer(private val filePath: String) : Closeable {
         mutex.withLock {
             val r = renderer ?: throw PdfException.NotFound()
             r.openPage(index).use { page ->
+                val pageWidth = page.width.coerceAtLeast(1)
+                val pageHeight = page.height.coerceAtLeast(1)
                 val safeWidth = targetWidthPx.coerceAtLeast(1)
-                val scale = safeWidth / page.width.toFloat()
-                val height = (page.height * scale).toInt().coerceAtLeast(1)
-                val bitmap = Bitmap.createBitmap(safeWidth, height, Bitmap.Config.ARGB_8888)
+                val scale = safeWidth / pageWidth.toFloat()
+                var bitmapWidth = safeWidth
+                var bitmapHeight = (pageHeight * scale).toInt().coerceAtLeast(1)
+
+                // Some PDFs - scanned or print-oriented exports especially - have pages far
+                // taller (relative to width) than a phone screen. Rendering those at full screen
+                // width with no cap can produce a single bitmap tens of megabytes in size; with
+                // several pages cached at once (see trimBitmapCache), that reliably
+                // OutOfMemoryErrors the whole app. Cap the total pixel budget instead of just
+                // matching the requested width, shrinking outlier pages rather than crashing.
+                val pixelBudget = MAX_BITMAP_PIXELS
+                val actualPixels = bitmapWidth.toLong() * bitmapHeight.toLong()
+                if (actualPixels > pixelBudget) {
+                    val shrink = kotlin.math.sqrt(pixelBudget.toDouble() / actualPixels.toDouble())
+                    bitmapWidth = (bitmapWidth * shrink).toInt().coerceAtLeast(1)
+                    bitmapHeight = (bitmapHeight * shrink).toInt().coerceAtLeast(1)
+                }
+
+                val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
                 bitmap.eraseColor(Color.WHITE)
-                page.render(bitmap, null, null, android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                 bitmap
             }
         }
@@ -81,5 +99,12 @@ class PdfPageRenderer(private val filePath: String) : Closeable {
 
     override fun close() {
         closeInternal()
+    }
+
+    companion object {
+        // ~4M pixels (e.g. a 2000x2000-equivalent budget) is plenty sharp for on-screen reading
+        // and keeps a single cached page bitmap under ~16MB at ARGB_8888, regardless of a PDF's
+        // own page dimensions.
+        private const val MAX_BITMAP_PIXELS = 4_000_000L
     }
 }

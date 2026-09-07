@@ -48,6 +48,16 @@ jobs:
           path: ReadFlow/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
+      - name: Build release APK (minified, resource-shrunk)
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: readflow-release-apk
+          path: ReadFlow/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
       - name: Run unit tests
         continue-on-error: true
         run: ./gradlew test --stacktrace
