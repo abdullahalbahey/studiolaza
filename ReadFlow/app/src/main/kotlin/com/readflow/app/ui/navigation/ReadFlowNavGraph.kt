@@ -1,8 +1,10 @@
 package com.readflow.app.ui.navigation
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -20,6 +22,8 @@ import com.readflow.app.ui.reader.ReaderScreen
 import com.readflow.app.ui.reminders.ReminderEditorScreen
 import com.readflow.app.ui.stats.StatsScreen
 
+private const val TAG = "ReadFlow"
+
 @Composable
 fun ReadFlowNavGraph(
     onboardingCompleted: Boolean,
@@ -30,6 +34,11 @@ fun ReadFlowNavGraph(
     navController: NavHostController = rememberNavController()
 ) {
     val startDestination = if (onboardingCompleted) Screen.Main.route else Screen.Onboarding.route
+    // Logs once per real navigation-graph setup (not every recomposition), keyed on the value
+    // that decided it - confirms this decision is only ever made from a loaded settings value.
+    remember(startDestination) {
+        Log.d(TAG, "[STARTUP] Navigation graph starting at $startDestination (onboardingCompleted=$onboardingCompleted)")
+    }
 
     LaunchedEffect(deepLinkBookId) {
         if (deepLinkBookId != null && deepLinkBookId > 0) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -222,12 +224,24 @@ private fun ReminderRow(reminder: ReminderEntity, onToggle: (Boolean) -> Unit, o
 
 @Composable
 private fun <T> LazyRowChips(options: List<T>, selected: T, label: (T) -> String, onSelect: (T) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // A plain, non-scrolling Row here let the last chip(s) get squeezed into whatever width was
+    // left over once the earlier ones took their natural size, and FilterChip's label Text (no
+    // maxLines/overflow set) wrapped that squeeze into one character per line ("Progress" ->
+    // vertically stacked letters) instead of just running off-screen. Scrolling avoids the squeeze
+    // in the first place; maxLines + ellipsis is a hard guarantee against vertical wrapping even
+    // if a future chip's label is unusually long for the available width.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         options.forEach { option ->
             androidx.compose.material3.FilterChip(
                 selected = option == selected,
                 onClick = { onSelect(option) },
-                label = { Text(label(option)) }
+                label = { Text(label(option), maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
         }
     }
