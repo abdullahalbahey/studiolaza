@@ -65,7 +65,9 @@ class PdfImporter @Inject constructor(
         } catch (e: PdfException) {
             destFile.delete()
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Any other failure (including OutOfMemoryError from a huge/malformed PDF) should
+            // fail this import gracefully rather than crash the app.
             destFile.delete()
             throw PdfException.Corrupted()
         } finally {
@@ -110,7 +112,7 @@ class PdfImporter @Inject constructor(
             }
             bitmap.recycle()
             coverFile.absolutePath
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }

@@ -42,7 +42,7 @@ class PdfPageRenderer(private val filePath: String) : Closeable {
             } catch (e: PdfException) {
                 closeInternal()
                 throw e
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 closeInternal()
                 throw PdfException.Corrupted()
             }

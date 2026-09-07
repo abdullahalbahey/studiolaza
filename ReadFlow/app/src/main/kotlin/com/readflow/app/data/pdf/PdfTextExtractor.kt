@@ -32,7 +32,7 @@ class PdfTextExtractor @Inject constructor(
             } else {
                 doc
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }
@@ -48,7 +48,7 @@ class PdfTextExtractor @Inject constructor(
                 stripper.endPage = pageIndex + 1
                 stripper.getText(it).trim()
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }
@@ -67,7 +67,7 @@ class PdfTextExtractor @Inject constructor(
                 }
                 result
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }
@@ -84,7 +84,7 @@ class PdfTextExtractor @Inject constructor(
                 stripper.endPage = pagesToCheck
                 stripper.getText(it).trim().length > 40
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             false
         }
     }
@@ -98,7 +98,7 @@ class PdfTextExtractor @Inject constructor(
                 info?.title?.trim()?.takeIf { t -> t.isNotBlank() } to
                     info?.author?.trim()?.takeIf { a -> a.isNotBlank() }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null to null
         }
     }
@@ -113,7 +113,7 @@ class PdfTextExtractor @Inject constructor(
                 walkOutline(outline, document, 0, nodes)
                 nodes
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             emptyList()
         }
     }
@@ -143,7 +143,7 @@ class PdfTextExtractor @Inject constructor(
             val page = item.findDestinationPage(document) ?: return null
             val index = document.pages.indexOf(page)
             if (index >= 0) index else null
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }

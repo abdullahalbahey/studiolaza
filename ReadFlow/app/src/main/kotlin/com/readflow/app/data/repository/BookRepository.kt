@@ -42,7 +42,7 @@ class BookRepository @Inject constructor(
                 val bookId = insertNewBook(info)
                 ImportOutcome.Success(bookId)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             ImportOutcome.Failed(e.message ?: "Import failed")
         }
     }
@@ -83,7 +83,7 @@ class BookRepository @Inject constructor(
                         val bookId = insertNewBook(info)
                         ImportOutcome.Success(bookId)
                     }
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     ImportOutcome.Failed(e.message ?: "Import failed")
                 }
             }
@@ -92,7 +92,7 @@ class BookRepository @Inject constructor(
                     val info = pdfImporter.importFromUri(uri, displayName)
                     val bookId = insertNewBook(info)
                     ImportOutcome.Success(bookId)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     ImportOutcome.Failed(e.message ?: "Import failed")
                 }
             }

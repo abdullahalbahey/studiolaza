@@ -49,7 +49,11 @@ class BookContentRepository @Inject constructor(
         if (book?.isIndexed != true) {
             // Not indexed yet (e.g. indexing still running, or it failed silently) - index now
             // so this search attempt can return complete results.
-            indexBookNow(bookId, filePath)
+            try {
+                indexBookNow(bookId, filePath)
+            } catch (e: Throwable) {
+                runCatching { bookDao.updateIndexingState(bookId, indexed = false, hasText = false) }
+            }
         }
         val matches = pageTextDao.search(bookId, query)
         return matches.map { SearchResult(it.pageNumber, buildSnippet(it.text, query)) }
@@ -57,7 +61,15 @@ class BookContentRepository @Inject constructor(
 
     fun indexBookInBackground(bookId: Long, filePath: String) {
         appScope.launch(Dispatchers.IO) {
-            indexBookNow(bookId, filePath)
+            try {
+                indexBookNow(bookId, filePath)
+            } catch (e: Throwable) {
+                // Best-effort: a book that fails to index is still fully readable in Original PDF
+                // mode, it just won't have search/TOC/Reading Mode. PDFBox-Android can throw
+                // OutOfMemoryError on large/complex files, which is a Throwable, not an Exception -
+                // never let indexing take down the whole app.
+                runCatching { bookDao.updateIndexingState(bookId, indexed = false, hasText = false) }
+            }
         }
     }
 

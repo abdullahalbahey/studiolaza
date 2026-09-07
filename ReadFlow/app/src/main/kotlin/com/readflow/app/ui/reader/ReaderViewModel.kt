@@ -125,7 +125,7 @@ class ReaderViewModel @Inject constructor(
             renderer = r
         } catch (e: PdfException) {
             _uiState.update { it.copy(error = e.message) }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             _uiState.update { it.copy(error = "This PDF could not be opened.") }
         }
     }
@@ -140,8 +140,10 @@ class ReaderViewModel @Inject constructor(
                 val bitmap = r.renderPage(index, targetWidthPx)
                 trimBitmapCache(index)
                 pageBitmaps[index] = bitmap
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 // Leave this page's slot empty; the UI shows a lightweight error placeholder.
+                // Catching Throwable (not just Exception) matters here: a huge or malformed page
+                // can make Bitmap.createBitmap throw OutOfMemoryError, which must not crash the app.
             } finally {
                 loadingPages -= index
             }
