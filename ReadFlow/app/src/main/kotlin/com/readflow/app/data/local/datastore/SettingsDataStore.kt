@@ -42,7 +42,9 @@ data class AppSettings(
     // Library
     val librarySortOrder: LibrarySortOrder = LibrarySortOrder.RECENTLY_READ,
     val libraryFilter: LibraryFilter = LibraryFilter.ALL,
-    val libraryViewType: LibraryViewType = LibraryViewType.GRID
+    val libraryViewType: LibraryViewType = LibraryViewType.GRID,
+    // Google Drive
+    val driveApiKey: String? = null
 )
 
 private val Context.dataStore by preferencesDataStore(name = "readflow_settings")
@@ -70,6 +72,7 @@ class SettingsDataStore @Inject constructor(
         val LIBRARY_SORT = stringPreferencesKey("library_sort_order")
         val LIBRARY_FILTER = stringPreferencesKey("library_filter")
         val LIBRARY_VIEW_TYPE = stringPreferencesKey("library_view_type")
+        val DRIVE_API_KEY = stringPreferencesKey("drive_api_key")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -91,7 +94,8 @@ class SettingsDataStore @Inject constructor(
             defaultReminderMinute = prefs[Keys.DEFAULT_REMINDER_MINUTE] ?: 0,
             librarySortOrder = prefs[Keys.LIBRARY_SORT]?.let { runCatching { LibrarySortOrder.valueOf(it) }.getOrNull() } ?: LibrarySortOrder.RECENTLY_READ,
             libraryFilter = prefs[Keys.LIBRARY_FILTER]?.let { runCatching { LibraryFilter.valueOf(it) }.getOrNull() } ?: LibraryFilter.ALL,
-            libraryViewType = prefs[Keys.LIBRARY_VIEW_TYPE]?.let { runCatching { LibraryViewType.valueOf(it) }.getOrNull() } ?: LibraryViewType.GRID
+            libraryViewType = prefs[Keys.LIBRARY_VIEW_TYPE]?.let { runCatching { LibraryViewType.valueOf(it) }.getOrNull() } ?: LibraryViewType.GRID,
+            driveApiKey = prefs[Keys.DRIVE_API_KEY]?.takeIf { it.isNotBlank() }
         )
     }
 
@@ -115,6 +119,9 @@ class SettingsDataStore @Inject constructor(
     suspend fun setLibrarySortOrder(order: LibrarySortOrder) = update { it[Keys.LIBRARY_SORT] = order.name }
     suspend fun setLibraryFilter(filter: LibraryFilter) = update { it[Keys.LIBRARY_FILTER] = filter.name }
     suspend fun setLibraryViewType(type: LibraryViewType) = update { it[Keys.LIBRARY_VIEW_TYPE] = type.name }
+    suspend fun setDriveApiKey(key: String?) = update {
+        if (key.isNullOrBlank()) it.remove(Keys.DRIVE_API_KEY) else it[Keys.DRIVE_API_KEY] = key
+    }
 
     private suspend fun update(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         context.dataStore.edit(block)

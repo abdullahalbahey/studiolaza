@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -142,6 +143,30 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                         onClick = { viewModel.setLibraryViewType(type) },
                         shape = SegmentedButtonDefaults.itemShape(index, LibraryViewType.entries.size)
                     ) { Text(type.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                }
+            }
+
+            SectionTitle("Google Drive")
+            Text(
+                "Needed to import a whole Drive folder of PDFs at once (Add Book → paste a folder link). Create a free API key in Google Cloud Console with the Drive API enabled.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            var apiKeyText by remember { mutableStateOf(state.settings.driveApiKey ?: "") }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = apiKeyText,
+                    onValueChange = { apiKeyText = it },
+                    placeholder = { Text("AIza…") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedButton(onClick = { viewModel.setDriveApiKey(apiKeyText.trim().ifBlank { null }) }) {
+                    Text("Save")
                 }
             }
 

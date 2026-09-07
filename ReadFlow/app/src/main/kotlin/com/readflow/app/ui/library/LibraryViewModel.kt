@@ -10,7 +10,9 @@ import com.readflow.app.data.local.datastore.SettingsDataStore
 import com.readflow.app.data.local.db.entity.BookEntity
 import com.readflow.app.data.local.db.entity.BookStatus
 import com.readflow.app.data.repository.BookRepository
+import com.readflow.app.data.repository.DriveFolderRepository
 import com.readflow.app.data.repository.DuplicateResolution
+import com.readflow.app.data.repository.FolderImportSummary
 import com.readflow.app.data.repository.ImportOutcome
 import com.readflow.app.domain.ProgressCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,6 +40,8 @@ data class BookUiModel(
 
 data class DuplicatePromptState(val existingBookId: Long, val uri: Uri, val displayName: String?)
 
+data class FolderImportProgress(val done: Int, val total: Int, val currentName: String)
+
 data class LibraryUiState(
     val books: List<BookUiModel> = emptyList(),
     val isLoading: Boolean = true,
@@ -47,13 +52,17 @@ data class LibraryUiState(
     val duplicatePrompt: DuplicatePromptState? = null,
     val errorMessage: String? = null,
     val isImporting: Boolean = false,
-    val justImportedBookId: Long? = null
+    val justImportedBookId: Long? = null,
+    val hasDriveApiKey: Boolean = false,
+    val folderImportProgress: FolderImportProgress? = null,
+    val folderImportSummary: FolderImportSummary? = null
 )
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val bookRepository: BookRepository,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    private val driveFolderRepository: DriveFolderRepository
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
@@ -63,7 +72,9 @@ class LibraryViewModel @Inject constructor(
         val duplicatePrompt: DuplicatePromptState? = null,
         val errorMessage: String? = null,
         val isImporting: Boolean = false,
-        val justImportedBookId: Long? = null
+        val justImportedBookId: Long? = null,
+        val folderImportProgress: FolderImportProgress? = null,
+        val folderImportSummary: FolderImportSummary? = null
     )
 
     val uiState: StateFlow<LibraryUiState> = combine(
@@ -86,7 +97,10 @@ class LibraryViewModel @Inject constructor(
             duplicatePrompt = transient.duplicatePrompt,
             errorMessage = transient.errorMessage,
             isImporting = transient.isImporting,
-            justImportedBookId = transient.justImportedBookId
+            justImportedBookId = transient.justImportedBookId,
+            hasDriveApiKey = settings.driveApiKey != null,
+            folderImportProgress = transient.folderImportProgress,
+            folderImportSummary = transient.folderImportSummary
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryUiState())
 
@@ -158,6 +172,29 @@ class LibraryViewModel @Inject constructor(
 
     fun dismissDuplicatePrompt() {
         transientState.update { it.copy(duplicatePrompt = null) }
+    }
+
+    fun importFromDriveFolder(folderLink: String) {
+        viewModelScope.launch {
+            transientState.update { it.copy(isImporting = true, errorMessage = null, folderImportProgress = null) }
+            val apiKey = settingsDataStore.settings.first().driveApiKey
+            try {
+                val summary = driveFolderRepository.importFolder(folderLink, apiKey) { done, total, name ->
+                    transientState.update { it.copy(folderImportProgress = FolderImportProgress(done, total, name)) }
+                }
+                transientState.update {
+                    it.copy(isImporting = false, folderImportProgress = null, folderImportSummary = summary)
+                }
+            } catch (e: Throwable) {
+                transientState.update {
+                    it.copy(isImporting = false, folderImportProgress = null, errorMessage = e.message ?: "Folder import failed.")
+                }
+            }
+        }
+    }
+
+    fun consumeFolderImportSummary() {
+        transientState.update { it.copy(folderImportSummary = null) }
     }
 
     fun consumeError() {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.UUID
@@ -36,9 +37,15 @@ class PdfImporter @Inject constructor(
 
     /** Copies the picked PDF into app-private storage and extracts everything needed to add it to the library. */
     suspend fun importFromUri(uri: Uri, displayName: String?): ImportedPdfInfo = withContext(Dispatchers.IO) {
+        val input = context.contentResolver.openInputStream(uri) ?: throw PdfException.NotFound()
+        input.use { importFromStream(it, displayName) }
+    }
+
+    /** Same as [importFromUri] but for a PDF already available as a stream (e.g. downloaded from Drive). */
+    suspend fun importFromStream(source: InputStream, displayName: String?): ImportedPdfInfo = withContext(Dispatchers.IO) {
         val id = UUID.randomUUID().toString()
         val destFile = File(booksDir, "$id.pdf")
-        val hash = copyAndHash(uri, destFile)
+        val hash = copyAndHash(source, destFile)
 
         val renderer = PdfPageRenderer(destFile.absolutePath)
         try {
@@ -80,23 +87,20 @@ class PdfImporter @Inject constructor(
         coverPath?.let { runCatching { File(it).delete() } }
     }
 
-    private fun copyAndHash(uri: Uri, destFile: File): String {
+    private fun copyAndHash(source: InputStream, destFile: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
-        val input = context.contentResolver.openInputStream(uri) ?: throw PdfException.NotFound()
-        input.use { rawInput ->
-            DigestInputStream(rawInput, digest).use { digestInput ->
-                FileOutputStream(destFile).use { output ->
-                    val buffer = ByteArray(64 * 1024)
-                    var bytesRead: Int
-                    var totalRead = 0L
-                    while (digestInput.read(buffer).also { bytesRead = it } != -1) {
-                        output.write(buffer, 0, bytesRead)
-                        totalRead += bytesRead
-                    }
-                    if (totalRead == 0L) {
-                        destFile.delete()
-                        throw PdfException.Empty()
-                    }
+        DigestInputStream(source, digest).use { digestInput ->
+            FileOutputStream(destFile).use { output ->
+                val buffer = ByteArray(64 * 1024)
+                var bytesRead: Int
+                var totalRead = 0L
+                while (digestInput.read(buffer).also { bytesRead = it } != -1) {
+                    output.write(buffer, 0, bytesRead)
+                    totalRead += bytesRead
+                }
+                if (totalRead == 0L) {
+                    destFile.delete()
+                    throw PdfException.Empty()
                 }
             }
         }

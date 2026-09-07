@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
@@ -34,6 +35,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -76,6 +78,7 @@ fun LibraryScreen(
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
+    var showFolderImportDialog by remember { mutableStateOf(false) }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -112,6 +115,9 @@ fun LibraryScreen(
                 TopAppBar(
                     title = { Text("ReadFlow") },
                     actions = {
+                        IconButton(onClick = { showFolderImportDialog = true }) {
+                            Icon(Icons.Filled.CreateNewFolder, contentDescription = "Import from Google Drive folder")
+                        }
                         IconButton(onClick = { showSearch = !showSearch }) {
                             Icon(Icons.Filled.Search, contentDescription = "Search")
                         }
@@ -205,13 +211,47 @@ fun LibraryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator()
-                        Text("Importing book…", modifier = Modifier.padding(top = 12.dp))
+                    val folderProgress = state.folderImportProgress
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 32.dp)) {
+                        if (folderProgress != null && folderProgress.total > 0) {
+                            LinearProgressIndicator(
+                                progress = { (folderProgress.done.toFloat() / folderProgress.total).coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                "Importing ${folderProgress.done + 1} of ${folderProgress.total}${if (folderProgress.currentName.isNotBlank()) ": ${folderProgress.currentName}" else ""}",
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        } else {
+                            CircularProgressIndicator()
+                            Text("Importing…", modifier = Modifier.padding(top = 12.dp))
+                        }
                     }
                 }
             }
         }
+    }
+
+    if (showFolderImportDialog) {
+        FolderImportDialog(
+            hasApiKey = state.hasDriveApiKey,
+            onDismiss = { showFolderImportDialog = false },
+            onImport = { link -> showFolderImportDialog = false; viewModel.importFromDriveFolder(link) }
+        )
+    }
+
+    state.folderImportSummary?.let { summary ->
+        AlertDialog(
+            onDismissRequest = viewModel::consumeFolderImportSummary,
+            title = { Text("Folder import finished") },
+            text = {
+                Text(
+                    "Found ${summary.filesFound} PDF${if (summary.filesFound == 1) "" else "s"} — added ${summary.added}, " +
+                        "skipped ${summary.duplicates} already in your library, ${summary.failed} failed."
+                )
+            },
+            confirmButton = { TextButton(onClick = viewModel::consumeFolderImportSummary) { Text("OK") } }
+        )
     }
 
     state.duplicatePrompt?.let { prompt ->
@@ -236,6 +276,41 @@ fun LibraryScreen(
             }
         )
     }
+}
+
+@Composable
+private fun FolderImportDialog(hasApiKey: Boolean, onDismiss: () -> Unit, onImport: (String) -> Unit) {
+    var link by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Import from Drive folder") },
+        text = {
+            Column {
+                Text("Paste a public Google Drive folder link. Every PDF directly inside it will be imported.")
+                if (!hasApiKey) {
+                    Text(
+                        "You need a Google Drive API key set in Settings first — this always requires one.",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                OutlinedTextField(
+                    value = link,
+                    onValueChange = { link = it },
+                    placeholder = { Text("https://drive.google.com/drive/folders/...") },
+                    singleLine = true,
+                    enabled = hasApiKey,
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onImport(link.trim()) }, enabled = hasApiKey && link.isNotBlank()) {
+                Text("Import")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
 }
 
 @Composable

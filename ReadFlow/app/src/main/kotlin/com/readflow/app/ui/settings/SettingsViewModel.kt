@@ -58,6 +58,7 @@ class SettingsViewModel @Inject constructor(
     fun setDefaultReminderTime(hour: Int, minute: Int) = viewModelScope.launch { settingsDataStore.setDefaultReminderTime(hour, minute) }
     fun setLibrarySortOrder(order: LibrarySortOrder) = viewModelScope.launch { settingsDataStore.setLibrarySortOrder(order) }
     fun setLibraryViewType(type: LibraryViewType) = viewModelScope.launch { settingsDataStore.setLibraryViewType(type) }
+    fun setDriveApiKey(key: String?) = viewModelScope.launch { settingsDataStore.setDriveApiKey(key) }
 
     fun toggleReminder(reminder: ReminderEntity, enabled: Boolean) = viewModelScope.launch {
         reminderRepository.setEnabled(reminder, enabled)

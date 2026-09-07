@@ -4,6 +4,7 @@ import android.net.Uri
 import com.readflow.app.data.local.db.dao.BookDao
 import com.readflow.app.data.local.db.entity.BookEntity
 import com.readflow.app.data.local.db.entity.BookStatus
+import com.readflow.app.data.pdf.ImportedPdfInfo
 import com.readflow.app.data.pdf.PdfImporter
 import com.readflow.app.domain.ProgressCalculator
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,11 @@ sealed interface ImportOutcome {
     data class Success(val bookId: Long) : ImportOutcome
     data class Duplicate(val existingBookId: Long, val pendingUri: Uri, val pendingDisplayName: String?) : ImportOutcome
     data class Failed(val message: String) : ImportOutcome
+}
+
+sealed interface DriveBookImportResult {
+    data class Success(val bookId: Long) : DriveBookImportResult
+    data class Duplicate(val existingBookId: Long) : DriveBookImportResult
 }
 
 enum class DuplicateResolution { OPEN_EXISTING, REPLACE, IMPORT_ANYWAY }
@@ -99,7 +105,18 @@ class BookRepository @Inject constructor(
         }
     }
 
-    private suspend fun insertNewBook(info: com.readflow.app.data.pdf.ImportedPdfInfo): Long {
+    /** Records a book already downloaded and imported from Drive (bytes already on disk as [info]). */
+    suspend fun importDriveBook(info: ImportedPdfInfo): DriveBookImportResult {
+        val existing = bookDao.findByHash(info.fileHash)
+        return if (existing != null) {
+            pdfImporter.deleteBookFiles(info.filePath, info.coverPath)
+            DriveBookImportResult.Duplicate(existing.id)
+        } else {
+            DriveBookImportResult.Success(insertNewBook(info))
+        }
+    }
+
+    private suspend fun insertNewBook(info: ImportedPdfInfo): Long {
         val book = BookEntity(
             title = info.title,
             author = info.author,
