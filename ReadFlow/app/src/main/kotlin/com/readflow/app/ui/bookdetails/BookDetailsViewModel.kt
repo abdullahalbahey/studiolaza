@@ -59,45 +59,65 @@ class BookDetailsViewModel @Inject constructor(
         sessionRepository.observeForBook(bookId)
     ) { book, goal, sessions ->
         if (book == null) return@combine BookDetailsUiState(isLoading = false, deleted = true)
-        val now = System.currentTimeMillis()
-        val stats = StatsCalculator.compute(
-            pageCount = book.pageCount,
-            currentPage = book.currentPage,
-            sessions = sessions,
-            targetPagesPerDay = goal?.targetPagesPerDay,
-            nowMillis = now
-        )
-        val today = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
-        val pagesReadToday = sessions
-            .filter { Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate() == today }
-            .sumOf { (it.pagesEnded - it.pagesStarted).coerceAtLeast(0) }
-        val goalProgress = GoalCalculator.compute(
-            currentPage = book.currentPage,
-            pageCount = book.pageCount,
-            targetPagesPerDay = goal?.targetPagesPerDay,
-            pagesReadToday = pagesReadToday,
-            historicalPagesPerDay = 0.0,
-            nowMillis = now
-        )
-        BookDetailsUiState(
-            isLoading = false,
-            bookId = book.id,
-            title = book.title,
-            author = book.author,
-            coverPath = book.coverPath,
-            pageCount = book.pageCount,
-            currentPageDisplay = ProgressCalculator.displayPage(book.currentPage),
-            progressPercent = ProgressCalculator.percentComplete(book.currentPage, book.pageCount),
-            status = runCatching { BookStatus.valueOf(book.status) }.getOrDefault(BookStatus.NOT_STARTED),
-            totalReadingTimeMillis = book.totalReadingTimeMillis,
-            goalPagesPerDay = goal?.targetPagesPerDay,
-            goalPagesReadToday = goalProgress.pagesReadToday,
-            goalOnTrackToday = goalProgress.onTrackToday,
-            goalRemainingPages = stats.totalPages - stats.pagesRead,
-            goalEstimatedCompletionMillis = stats.estimatedCompletionDate,
-            readingModeEnabled = book.readingModeEnabled,
-            hasExtractableText = book.hasExtractableText
-        )
+        // This runs on viewModelScope (the main thread) every time book/goal/sessions change, so
+        // any exception here would crash the whole app, not just fail to show stats for this book.
+        // A book's stats/goal math failing is never worth that - fall back to the plain book info.
+        try {
+            val now = System.currentTimeMillis()
+            val stats = StatsCalculator.compute(
+                pageCount = book.pageCount,
+                currentPage = book.currentPage,
+                sessions = sessions,
+                targetPagesPerDay = goal?.targetPagesPerDay,
+                nowMillis = now
+            )
+            val today = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
+            val pagesReadToday = sessions
+                .filter { Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate() == today }
+                .sumOf { (it.pagesEnded - it.pagesStarted).coerceAtLeast(0) }
+            val goalProgress = GoalCalculator.compute(
+                currentPage = book.currentPage,
+                pageCount = book.pageCount,
+                targetPagesPerDay = goal?.targetPagesPerDay,
+                pagesReadToday = pagesReadToday,
+                historicalPagesPerDay = 0.0,
+                nowMillis = now
+            )
+            BookDetailsUiState(
+                isLoading = false,
+                bookId = book.id,
+                title = book.title,
+                author = book.author,
+                coverPath = book.coverPath,
+                pageCount = book.pageCount,
+                currentPageDisplay = ProgressCalculator.displayPage(book.currentPage),
+                progressPercent = ProgressCalculator.percentComplete(book.currentPage, book.pageCount),
+                status = runCatching { BookStatus.valueOf(book.status) }.getOrDefault(BookStatus.NOT_STARTED),
+                totalReadingTimeMillis = book.totalReadingTimeMillis,
+                goalPagesPerDay = goal?.targetPagesPerDay,
+                goalPagesReadToday = goalProgress.pagesReadToday,
+                goalOnTrackToday = goalProgress.onTrackToday,
+                goalRemainingPages = stats.totalPages - stats.pagesRead,
+                goalEstimatedCompletionMillis = stats.estimatedCompletionDate,
+                readingModeEnabled = book.readingModeEnabled,
+                hasExtractableText = book.hasExtractableText
+            )
+        } catch (e: Throwable) {
+            BookDetailsUiState(
+                isLoading = false,
+                bookId = book.id,
+                title = book.title,
+                author = book.author,
+                coverPath = book.coverPath,
+                pageCount = book.pageCount,
+                currentPageDisplay = ProgressCalculator.displayPage(book.currentPage),
+                progressPercent = ProgressCalculator.percentComplete(book.currentPage, book.pageCount),
+                status = runCatching { BookStatus.valueOf(book.status) }.getOrDefault(BookStatus.NOT_STARTED),
+                totalReadingTimeMillis = book.totalReadingTimeMillis,
+                readingModeEnabled = book.readingModeEnabled,
+                hasExtractableText = book.hasExtractableText
+            )
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BookDetailsUiState())
 
     fun deleteBook() {

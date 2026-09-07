@@ -2,6 +2,7 @@ package com.readflow.app.ui.main
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,12 @@ fun MainScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
+        // Each tab (LibraryScreen, GoalsScreen, SettingsScreen) has its own Scaffold with its own
+        // TopAppBar, which already pads itself for the status bar. Leaving this Scaffold's default
+        // window insets (which include the status bar, since it has no topBar of its own to absorb
+        // them) would stack a second status-bar-height of empty space above every tab's content.
+        // NavigationBar below still gets the correct bottom inset on its own regardless of this.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
