@@ -4,6 +4,7 @@ package com.readflow.app.ui.bookdetails
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -130,7 +133,7 @@ fun BookDetailsScreen(
             Row {
                 BookCoverImage(coverPath = state.coverPath, modifier = Modifier.width(120.dp).height(168.dp))
                 Column(modifier = Modifier.padding(start = 16.dp)) {
-                    Text(state.title, style = MaterialTheme.typography.titleLarge)
+                    Text(state.title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     val author = state.author
                     if (author != null) {
                         Text(author, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -249,11 +252,19 @@ private data class DetailAction(val label: String, val icon: androidx.compose.ui
 private fun DetailActionButton(action: DetailAction, modifier: Modifier = Modifier) {
     OutlinedButton(
         onClick = action.onClick,
-        modifier = modifier.height(72.dp)
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+        modifier = modifier.height(80.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(action.icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(action.label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+            Text(
+                action.label,
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }
