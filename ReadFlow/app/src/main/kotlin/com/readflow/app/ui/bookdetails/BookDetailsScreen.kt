@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -206,14 +204,22 @@ fun BookDetailsScreen(
                 DetailAction("Goal", Icons.Filled.Flag, onOpenGoal),
                 DetailAction("Reminder", Icons.Filled.Alarm, onOpenReminder)
             )
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+            Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(actions) { action ->
-                    DetailActionButton(action)
+                actions.chunked(3).forEach { rowActions ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowActions.forEach { action ->
+                            DetailActionButton(action, modifier = Modifier.weight(1f))
+                        }
+                        repeat(3 - rowActions.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
@@ -240,10 +246,10 @@ fun BookDetailsScreen(
 private data class DetailAction(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val onClick: () -> Unit)
 
 @Composable
-private fun DetailActionButton(action: DetailAction) {
+private fun DetailActionButton(action: DetailAction, modifier: Modifier = Modifier) {
     OutlinedButton(
         onClick = action.onClick,
-        modifier = Modifier.fillMaxWidth().height(72.dp)
+        modifier = modifier.height(72.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(action.icon, contentDescription = null, modifier = Modifier.size(20.dp))
