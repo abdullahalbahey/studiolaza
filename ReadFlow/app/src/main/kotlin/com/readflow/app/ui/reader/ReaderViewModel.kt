@@ -85,6 +85,15 @@ class ReaderViewModel @Inject constructor(
             }
             val startPage = (requestedStartPage ?: book.currentPage).coerceIn(0, (book.pageCount - 1).coerceAtLeast(0))
             sessionStartPage = startPage
+            // Open the renderer before revealing the pager (isLoading = false below). PdfPageView
+            // requests its bitmap exactly once, from onSizeChanged - if that fires while renderer
+            // is still null, requestPageBitmap silently drops the request with no retry. On a
+            // multi-page book that page went unnoticed because swiping away and back disposes and
+            // re-measures the page, which retries and succeeds once the renderer has since opened;
+            // a single-page book has nothing to swipe to, so the dropped request never recovers and
+            // the page spins forever. Awaiting this first closes the race for every book, not just
+            // single-page ones - they only made it visible.
+            openRenderer(book.filePath)
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -99,7 +108,6 @@ class ReaderViewModel @Inject constructor(
             }
             bookRepository.markOpened(bookId)
             refreshBookmarkState(startPage)
-            openRenderer(book.filePath)
         }
         viewModelScope.launch {
             settingsDataStore.settings.collect { s ->
