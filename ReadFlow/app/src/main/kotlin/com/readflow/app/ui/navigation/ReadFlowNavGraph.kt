@@ -62,6 +62,7 @@ fun ReadFlowNavGraph(
             MainScreen(
                 onOpenBook = { bookId -> navController.navigate(Screen.BookDetails.createRoute(bookId)) },
                 onOpenReaderDirect = { bookId -> navController.navigate(Screen.Reader.createRoute(bookId)) },
+                onEditReminder = { reminderId -> navController.navigate(Screen.ReminderEditor.createRoute(reminderId = reminderId)) },
                 pendingImportUri = importUri,
                 onImportUriConsumed = onImportUriConsumed
             )

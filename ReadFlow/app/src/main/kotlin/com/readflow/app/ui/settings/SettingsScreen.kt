@@ -4,6 +4,7 @@ package com.readflow.app.ui.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -55,7 +57,7 @@ import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(onEditReminder: (Long) -> Unit = {}, viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
@@ -124,7 +126,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 Text("No reminders yet. Set one from a book's details page.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
             } else {
                 state.reminders.forEach { reminder ->
-                    ReminderRow(reminder, onToggle = { viewModel.toggleReminder(reminder, it) }, onDelete = { viewModel.deleteReminder(reminder) })
+                    ReminderRow(
+                        reminder,
+                        onToggle = { viewModel.toggleReminder(reminder, it) },
+                        onEdit = { onEditReminder(reminder.id) },
+                        onDelete = { viewModel.deleteReminder(reminder) }
+                    )
                 }
             }
 
@@ -205,17 +212,24 @@ private fun SettingsSwitchRow(label: String, checked: Boolean, onCheckedChange: 
 }
 
 @Composable
-private fun ReminderRow(reminder: ReminderEntity, onToggle: (Boolean) -> Unit, onDelete: (Unit) -> Unit) {
+private fun ReminderRow(reminder: ReminderEntity, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, onDelete: (Unit) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onEdit)
+        ) {
             Text("%02d:%02d".format(reminder.hour, reminder.minute), style = MaterialTheme.typography.bodyLarge)
             Text(reminder.message ?: "Reading reminder", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = reminder.enabled, onCheckedChange = onToggle)
+        IconButton(onClick = onEdit) {
+            Icon(Icons.Filled.Edit, contentDescription = "Edit reminder")
+        }
         IconButton(onClick = { onDelete(Unit) }) {
             Icon(Icons.Filled.Delete, contentDescription = "Delete reminder")
         }

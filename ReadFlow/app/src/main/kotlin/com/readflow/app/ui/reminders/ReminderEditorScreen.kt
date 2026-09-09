@@ -49,7 +49,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
 
 private val dayLabels = mapOf(1 to "Mon", 2 to "Tue", 3 to "Wed", 4 to "Thu", 5 to "Fri", 6 to "Sat", 7 to "Sun")
 
@@ -71,6 +75,18 @@ fun ReminderEditorScreen(bookId: Long?, reminderId: Long?, onBack: () -> Unit, v
 
     LaunchedEffect(state.saved, state.deleted) {
         if (state.saved || state.deleted) onBack()
+    }
+
+    // The exact-alarm and battery-optimization cards below send the user to system Settings;
+    // re-check both permissions when they come back so the cards clear without needing to
+    // leave and re-enter this screen.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshSystemPermissionState()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -102,6 +118,24 @@ fun ReminderEditorScreen(bookId: Long?, reminderId: Long?, onBack: () -> Unit, v
                                 context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
                             }
                         }) { Text("Open settings") }
+                    }
+                }
+            }
+
+            if (!state.isIgnoringBatteryOptimizations) {
+                Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Battery optimization may block reminders", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Your phone's battery manager can stop this app in the background and silently drop the reminder before it fires. Allow ReadFlow to run unrestricted so reminders arrive on time.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
+                            )
+                        }) { Text("Allow") }
                     }
                 }
             }

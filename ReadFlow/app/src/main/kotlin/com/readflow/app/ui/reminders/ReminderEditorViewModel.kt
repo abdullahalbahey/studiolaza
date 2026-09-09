@@ -30,6 +30,7 @@ data class ReminderEditorUiState(
     val selectedBookTitle: String? = null,
     val availableBooks: List<Pair<Long, String>> = emptyList(),
     val canScheduleExactAlarms: Boolean = true,
+    val isIgnoringBatteryOptimizations: Boolean = true,
     val saved: Boolean = false,
     val deleted: Boolean = false
 )
@@ -88,9 +89,20 @@ class ReminderEditorViewModel @Inject constructor(
                     selectedBookId = bookId,
                     selectedBookTitle = bookTitle,
                     availableBooks = books,
-                    canScheduleExactAlarms = alarmScheduler.canScheduleExactAlarms()
+                    canScheduleExactAlarms = alarmScheduler.canScheduleExactAlarms(),
+                    isIgnoringBatteryOptimizations = alarmScheduler.isIgnoringBatteryOptimizations()
                 )
             }
+        }
+    }
+
+    /** Called when the screen resumes, in case the user just came back from the system settings. */
+    fun refreshSystemPermissionState() {
+        _uiState.update {
+            it.copy(
+                canScheduleExactAlarms = alarmScheduler.canScheduleExactAlarms(),
+                isIgnoringBatteryOptimizations = alarmScheduler.isIgnoringBatteryOptimizations()
+            )
         }
     }
 

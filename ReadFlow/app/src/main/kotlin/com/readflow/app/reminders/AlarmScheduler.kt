@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import com.readflow.app.data.local.db.entity.ReminderEntity
 import com.readflow.app.domain.ReminderScheduleCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,6 +22,19 @@ class AlarmScheduler @Inject constructor(
 
     fun canScheduleExactAlarms(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) alarmManager.canScheduleExactAlarms() else true
+
+    /**
+     * Whether this app is exempt from system battery optimization. When it isn't, OEM battery
+     * managers (Samsung's "Put unused apps to sleep" especially) can silently kill the process
+     * or defer/drop the alarm before it ever reaches [ReminderReceiver], with no error anywhere -
+     * the reminder just never fires. This is the most common real-world cause of "I set a
+     * reminder and nothing happened" on Android, independent of whether the alarm itself was
+     * scheduled correctly.
+     */
+    fun isIgnoringBatteryOptimizations(): Boolean {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return true
+        return powerManager.isIgnoringBatteryOptimizations(context.packageName)
+    }
 
     fun schedule(reminder: ReminderEntity) {
         if (!reminder.enabled) {

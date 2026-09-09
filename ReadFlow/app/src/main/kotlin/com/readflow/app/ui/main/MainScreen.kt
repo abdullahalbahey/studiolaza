@@ -33,6 +33,7 @@ import com.readflow.app.ui.settings.SettingsScreen
 fun MainScreen(
     onOpenBook: (Long) -> Unit,
     onOpenReaderDirect: (Long) -> Unit,
+    onEditReminder: (Long) -> Unit,
     pendingImportUri: Uri?,
     onImportUriConsumed: () -> Unit
 ) {
@@ -82,7 +83,7 @@ fun MainScreen(
                     onImportUriConsumed = onImportUriConsumed
                 )
                 1 -> GoalsScreen(onBookClick = onOpenBook)
-                else -> SettingsScreen()
+                else -> SettingsScreen(onEditReminder = onEditReminder)
             }
         }
     }
